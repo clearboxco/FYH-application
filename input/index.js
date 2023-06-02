@@ -1,5 +1,4 @@
 
-
 const select = document.getElementById('state');
 const states = ['AL',
 'NE',
@@ -56,6 +55,7 @@ const states = ['AL',
 'MT',
 ];
 
+states.sort()
 
 
 for (let i = 0; i < states.length; i++) {
@@ -63,4 +63,18 @@ for (let i = 0; i < states.length; i++) {
     option.value = states[i];
     option.text = states[i];
     select.appendChild(option);
+}
+
+
+const select2 = document.getElementById('prop-type');
+const prop_types = ['Single Family Residential', 'Mobile/Manufactured Home',
+                    'Townhouse', 'Multi-Family (2-4 Unit)', 
+                    'Condo/Co-op','Multi-Family (5+ Unit)']
+
+
+for (let i = 0; i < prop_types.length; i++) {
+    const option = document.createElement('option');
+    option.value = prop_types[i];
+    option.text = prop_types[i];
+    select2.appendChild(option);
 }
