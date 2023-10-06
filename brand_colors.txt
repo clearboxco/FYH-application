@@ -1,0 +1,7 @@
+BRAND:
+
+#EFEFEF The Clear Box
+
+#3C8FF5 The Name - Roboto Font - Light Line-Width - lowercase
+
+#FFC857 The Sun - Medium Line-Width
