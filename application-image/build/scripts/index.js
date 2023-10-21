@@ -130,6 +130,8 @@ window.stateMapping_out={
     'Alaska': 'AK'
 }
 
+//Num Cards per Row
+window.numCardsPerRow=3;
 
 //Local Storage Arrays
 window.arrayName = 'outputArray';
@@ -157,12 +159,19 @@ const json = (response) => {
 
 // Utilities
 
-const encryptString = (string) => {
-    return CryptoJS.AES.encrypt(string,config.salt).toString();
+const encryptString = (plainText) => {
+    var b64 = CryptoJS.AES.encrypt(plainText, config.salt).toString();
+    var e64 = CryptoJS.enc.Base64.parse(b64);
+    var eHex = e64.toString(CryptoJS.enc.Hex);
+    return eHex;
 }
 
-const decryptString = (encrypted) => {
-    return CryptoJS.AES.decrypt(encrypted,config.salt).toString(CryptoJS.enc.Utf8);
+const decryptString = (cipherText) => {
+    var reb64 = CryptoJS.enc.Hex.parse(cipherText);
+    var bytes = reb64.toString(CryptoJS.enc.Base64);
+    var decrypt = CryptoJS.AES.decrypt(bytes, config.salt);
+    var plain = decrypt.toString(CryptoJS.enc.Utf8);
+    return plain;
 }
 
 const stripCommas = (string) => {
@@ -176,18 +185,52 @@ function delay(t, v) {
  }
 
 
+ const dynamicSort = (property,ascending,ignoreNull) => {
 
-//Local Storage Utilities
+    let sortOrder = 1;
+
+    if(!ascending){
+        sortOrder=-1;
+    }
+
+    return function(a,b) {
+        let result=null;
+        if(ignoreNull){
+           if(a[property]==null){
+            return 1;
+           }
+           if(b[property]==null){
+            return -1;
+           }
+        }
+
+        result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+
+        return result * sortOrder;
+    }
+ }
+
+ 
+const hrefNewTabRedirectHandler = (event) =>{
+    let link = $(event.currentTarget).attr('href');
+
+    window.open(link,'_blank').focus();
+
+    $(event.currentTarget).one('click',hrefNewTabRedirectHandler);
+}
+
+
+//Session Storage Utilities
 
 
 
  function getStorage(name){
-    return JSON.parse(localStorage.getItem(name));
+    return JSON.parse(sessionStorage.getItem(name));
  }
 
 
  function putStorage(name,obj) {
-    localStorage.setItem(name, JSON.stringify(obj));
+    sessionStorage.setItem(name, JSON.stringify(obj));
  }
 
  function appendToStoredArray(name,obj){
@@ -759,11 +802,11 @@ const clickNoLoginCardRedirectHandler = (event) =>{
 
 
 const postSearch = async (event) => {
-    const id = decryptString($(event.currentTarget).closest(".login-card").attr("data-id"));
+    const id = Number(decryptString(String($(event.currentTarget).closest(".login-card").attr("data-id"))));
     const response = await fetch(config.model+"/data/searches",{
         method: "POST",
         mode: "cors",
-        credentials: "include",
+        credentials: "include", 
         headers: {
             "Content-Type":"application/json",
             "Token":config.token
@@ -794,9 +837,9 @@ const postSearch = async (event) => {
 
 const storeData = (response) =>{
     if(response!==null){
-        console.log(response.data)
         let len = appendToStoredArray(window.arrayName,response.data);
-        return encryptString((len-1));
+        let encryptedIdx = encryptString(String((len-1)));
+        return encryptedIdx;
     }
     return "error";
 }
@@ -1086,7 +1129,7 @@ const submitForm = async (event) =>{
     let data = parseFormContent();
     data.submission_type=submissionType;
 
-    const response = fetch(config.model+"model/post",{
+    const response = await fetch(config.model+"model/post",{
         method:"POST",
         mode: "cors",
         credentials: "include",
@@ -1109,7 +1152,7 @@ const submitForm = async (event) =>{
     })
 
     Promise.all([response,delay(1500)]).then(function(data){
-        revealFinalSubmitButton(data[0]);
+        showFinalSubmitButton(data[0]);
     })
 
 }
@@ -1134,7 +1177,7 @@ const changeDisplayOnSubmit = (event) =>{
 
 
 
-const revealFinalSubmitButton = (id) =>{
+const showFinalSubmitButton = (id) =>{
     const $btn = $('#see-houses-btn');
     const $ldsRing = $('#lds-ring');
 
@@ -1259,7 +1302,7 @@ const postLike = async () =>{
     })
     .then(status)
     .then(json)
-    .then(function(data){
+    .catch(function(data){
         console.log(data.error)
     })
 }
@@ -1282,14 +1325,17 @@ if(hasPageClass("index")){
         $(elem).on('click input changed.bs.select',checkFormIFL);
         $(elem).on('click input changed.bs.select',checkFormSbmt);
     })
-    $('#ifl-btn').on('mousedown',checkFormIFL);
-    $('#sbmt-btn').on('mousedown',checkFormSbmt);
 
-    $('#ifl-btn').one('mouseup',submitForm);
-    $('#sbmt-btn').one('mouseup',submitForm);
+    /*ORDERING IMPORTANT*/
+    $('#ifl-btn').on('click',checkFormIFL);
+    $('#sbmt-btn').on('click',checkFormSbmt);
 
     $('#ifl-btn').one('click',changeDisplayOnSubmit);
     $('#sbmt-btn').one('click',changeDisplayOnSubmit);
+
+    $('#ifl-btn').one('click',submitForm);
+    $('#sbmt-btn').one('click',submitForm);
+    /*END ORDERING*/
 
     $('#see-houses-btn').on('click',(event) =>{
         let id = $(event.currentTarget).attr('data-storage-id');
@@ -1315,9 +1361,13 @@ if(hasPageClass("index")){
     $('#search-panel-btn').on('click',searchPanelButtonClickEventHandler);
     $('#exit-btn').on('click',searchPanelButtonClickEventHandler);
 
-    $('#celebration-badge').on('mousedown',incrementLikeCount);
-    $('#celebration-badge').on('mousedown',likeButtonAnimationClickEventHandler);
+    /*ORDERING IMPORTANT*/
+    $('#celebration-badge').on('click',incrementLikeCount);
+    $('#celebration-badge').on('click',likeButtonAnimationClickEventHandler);
     $('#celebration-badge').on('click',postLike);
+    /*END ORDERING*/
+
+    $('#footer-text').on('click',hrefNewTabRedirectHandler);
 }
 
 
@@ -1327,21 +1377,308 @@ if(hasPageClass("index")){
 
 //Output Page Event Definitions
 
+const getCardsPerRow = () =>{
+    let val = null;
+
+    $('.form-check-input').each(function(){
+        let $checkbox=$(this);
+        if($checkbox.prop('checked')){
+            val = $checkbox.attr("value");
+            return false;
+        }
+    });
+
+    return val;
+}
+
+
+
+const getSortDimension = () =>{
+    let $targetBtn = null;
+
+    $(".sort-btn").each(function(){
+        let $this=$(this);
+        if($this.hasClass("active")){
+            $targetBtn=$this;
+            return false;
+        }
+    })
+
+    return $targetBtn;
+}
+
+const sortData = (data) =>{
+
+    let $targetBtn = getSortDimension();
+
+    let dimension = "default";
+    let ascDirection = true;
+
+    if($targetBtn!=null){
+        dimension=$targetBtn.attr("value");
+        ascDirection=(!$targetBtn.hasClass("desc"))
+    }
+
+    if(ascDirection){
+        if(dimension=="default"){
+            return data;
+        }
+        else{
+            return data.sort(dynamicSort(dimension,true,true))
+        }
+    }
+    else{
+        if(dimension=="default"){
+            return data.reverse();
+        }
+        else{
+            return data.sort(dynamicSort(dimension,false,true));
+        }
+    }
+
+}
+
+
+
 const parseUrlParams = () => {
+
+    clearData();
+
     let url=new URL(window.location.toString())
 
     let urlParams = new URLSearchParams(url.search)
 
-    let arrayIdx= new Number(decryptString(urlParams.get("id")));
+    let arrayIdx= new Number(decryptString(String(urlParams.get("id"))));
 
-    const data = getStorage(window.arrayName) ?? [] [arrayIdx];
+    const data = (getStorage(window.arrayName) ?? [])[arrayIdx];
 
-    console.log(data)
+    let orderedData = sortData(data);
+
+    let cardsPerRow=new Number(getCardsPerRow());
+
+    displayData(orderedData,cardsPerRow);
 }
 
+
+
+const displayData = (data,cardsPerRow) =>{
+    const mainContent = document.querySelector("#main-content");
+
+    const rowTemplate=document.querySelector("#row-template");
+
+    const cardTemplate = document.querySelector("#card-template");
+
+    let numRows = Math.ceil(Number(data.length/cardsPerRow))
+    
+    let dataIdx = 0;
+
+    for(let rowNum=0;rowNum<numRows;rowNum++){
+        let rowClone = rowTemplate.content.cloneNode(true);
+        let rowCloneColArray = rowClone.querySelectorAll('.cards-col');
+
+        for(let col of rowCloneColArray){
+
+            if(dataIdx>=data.length){
+                $(col).addClass('disabled');
+                continue;
+            }
+
+            if(cardsPerRow==1){
+                if(col!==rowCloneColArray[1]){
+                    $(col).addClass('disabled');
+                    continue;
+                }
+            }
+
+            let cardClone = cardTemplate.content.cloneNode(true);
+
+            /*Update content for cardClone using data[dataIdx]*/
+            let house = data[dataIdx];
+
+            let sourceLink = cardClone.querySelector(".offer-link");
+
+            $(sourceLink).attr("href",house.url);
+
+            let entryItems = cardClone.querySelectorAll('.entry');
+
+            entryItems[0].innerHTML=house.address;
+            entryItems[1].innerHTML=house.city;
+            entryItems[2].innerHTML=house.state;
+            entryItems[3].innerHTML=house.zip;
+            entryItems[4].innerHTML=new Number(house.price).toLocaleString('en-US');
+
+            entryItems[5].innerHTML=house.bedrooms;
+            entryItems[6].innerHTML=house.bathrooms;
+            entryItems[7].innerHTML=house.sqft;
+
+            entryItems[8].innerHTML=house.year_built;
+            entryItems[9].innerHTML= new Number(house.price_per_sqft).toLocaleString('en-US');
+            entryItems[10].innerHTML= new Number(house['HOA/month']).toLocaleString('en-US');
+
+            if(house.openHouse_st+(18000*1000) > ((18000*1000)+1)){
+                entryItems[11].innerHTML=(new Date(house.openHouse_st+(18000*1000)).toLocaleString()).split(",")[0].trim()
+                entryItems[12].innerHTML=(new Date(house.openHouse_st+(18000*1000)).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }));
+                entryItems[13].innerHTML=(new Date(house.openHouse_et+(18000*1000)).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }));
+            }
+            else{
+                entryItems[11].innerHTML="N/A"
+                entryItems[12].innerHTML="N/A"
+                entryItems[13].innerHTML="N/A"
+            }
+
+
+            entryItems[14].innerHTML=new Number(house.days_on_market).toLocaleString('en-US');
+
+            /* TODO: Update all entryItems and ensure sorting puts cards in correct order */
+
+
+            cardClone
+
+            col.appendChild(cardClone)
+
+
+
+            dataIdx++;
+        }
+
+        mainContent.appendChild(rowClone);
+    }
+
+    
+    $('.offer-link').one('click',hrefNewTabRedirectHandler); 
+    $('.expand-card').one('click',expandContentBtnEventHandler);
+}
+
+const clearData = () =>{
+    let mainContent = $('#main-content');
+
+    mainContent.children('.cards-row').each(function(){
+        let $this = $(this);
+        $this.remove();
+    })
+}
+
+
+const expandContentBtnEventHandler = (event) =>{
+    let $cardsRow = $(event.currentTarget).closest('.cards-row');
+
+    let $localCard = $(event.currentTarget).closest('.house-card');
+    let $localCardsColumn = $(event.currentTarget).closest('.cards-col');
+    let $localMainColumn = $(event.currentTarget).closest('.main-card-col');
+    let $localExpandedColumn = $(event.currentTarget).closest('.card-row').find('.expanded-card-col');
+    let $localExpandedColumnCardBody = $localExpandedColumn.find('.card-body');
+
+    $localCard.toggleClass('active');
+
+    $localCardsColumn.toggleClass('expanded');
+
+    $localCardsColumn.addClass('target');
+    let $otherCardsColumns=$cardsRow.children('.cards-col').not('.target')
+    $localCardsColumn.removeClass('target');
+
+    if($localCardsColumn.hasClass('expanded')){
+
+        $otherCardsColumns.each(function(){
+            let $this=$(this);
+            $this.toggleClass('span-0 op-0 p-0');
+        })
+        
+    
+        const growPromise = new Promise((resolve,reject) =>{
+            $localCardsColumn.toggleClass('span-auto');
+            setTimeout(() =>{
+                resolve()},1100)
+        })
+    
+        growPromise.then(() =>{
+            $otherCardsColumns.each(function(){
+                let $this=$(this);
+                $this.toggleClass('hidden');
+            })
+            $localMainColumn.toggleClass('col col-auto');
+            $localExpandedColumn.toggleClass('col');
+            $localExpandedColumnCardBody.toggleClass('hidden');
+        });
+    }
+    else{
+        $localExpandedColumnCardBody.toggleClass('hidden');
+        $localExpandedColumn.toggleClass('col');
+        $localMainColumn.toggleClass('col col-auto');
+
+        $otherCardsColumns.each(function(){
+            let $this=$(this);
+            $this.toggleClass('hidden');
+            $this.toggleClass('span-0 op-0 p-0');
+        })
+
+        $localCardsColumn.toggleClass('span-auto');
+
+    }
+
+    $(event.currentTarget).one('click',expandContentBtnEventHandler);
+
+}
+
+
+const sortBtnClickEventHandler = (event) =>{
+    let $currTarget = $(event.currentTarget);
+
+    let $btnArray = $('.sort-btn');
+
+    if($currTarget.hasClass('active')){
+        $currTarget.toggleClass('asc');
+        $currTarget.toggleClass('desc');
+        changeSortBtnImg($currTarget);
+    }
+    else{
+        $btnArray.each(function(){
+            let $this=$(this);
+            if($this.hasClass('active')){
+                $this.removeClass('active');
+            }
+        })
+        $currTarget.addClass('active');
+
+    }
+}
+
+
+const changeSortBtnImg = (target) =>{
+    let $currTarget = $(target);
+
+    let $currImg = $currTarget.find('.sort-btn-img');
+
+    if($currImg.hasClass('bi-arrow-up')){
+        $currImg.removeClass('bi-arrow-up');
+        $currImg.addClass('bi-arrow-down');
+    }
+    else if($currImg.hasClass('bi-arrow-down')){
+        $currImg.removeClass('bi-arrow-down');
+        $currImg.addClass('bi-arrow-up');
+    }
+}
 
 
 //Output Page Events
 if(hasPageClass("output")){
     $(document).ready(parseUrlParams)
+
+    $('#cards-per-row-toggle').on('input',parseUrlParams);
+
+    $(".sort-btn").each(function(){
+        /*ORDERING IMPORTANT*/
+        $(this).on("click",sortBtnClickEventHandler);
+        $(this).on("click",parseUrlParams);
+        /*END ORDERING*/
+    })
+
+
+    //Need to revise to attach to created templates
+
 }
