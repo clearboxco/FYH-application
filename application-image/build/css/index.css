@@ -14,13 +14,19 @@
   --search-header-height: 50px;
   --search-panel-width: 300px;
 
+  --main-header-height: 115px;
+
   --main-footer-height: 25px;
   --main-background-margins:5px;
 
-  --main-form-height: 750px;
-  --submitted-height: 400px;
 
-  --spinner-size: 160px;
+  --main-form-height: 750px;
+  --submitted-height: 35vh;
+
+  --main-content-top-margin: 100px;
+
+  --card-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  --card-hover-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 24px 0 rgba(0, 0, 0, 0.19);
 }
 
 @media (max-width: 995px) {
@@ -267,8 +273,6 @@
   padding:2.5px;
 }
 
-/* ALMOST WORKS FINE BUT GETS WEIRD
-WHEN SCROLL DOWN ON MAIN CONTENT */
 
 #search-items{
   padding:10px;
@@ -287,7 +291,7 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 .search-card{
   font-family: var(--font);
   background-color: var(--darker-gray) !important;
-  box-shadow: -2px 2px 3px 1px var(--lightgray);
+  box-shadow: var(--card-shadow);
   margin:5px;
   animation: fadeIn .2s ease-in-out;
   -webkit-touch-callout: none;
@@ -299,7 +303,7 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 }
 
 .search-card:hover{
-  box-shadow: -2px 2px 4px 2px var(--lightgray) !important;
+  box-shadow: var(--card-hover-shadow);
 }
 
 .card-img{
@@ -307,17 +311,16 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 }
 
 .card-top{
-  font-size:14px;
   padding:10px;
   height: auto;
   border-bottom: 1px solid var(--dark-gray);
   overflow-wrap: break-word;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
 
 .card-top .card-img{
-  font-size:40px;
+  font-size:50px;
 }
 
 .card-top:hover{
@@ -336,14 +339,20 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 
 .card-body{
   padding: 0px;
+  overflow: hidden;
 }
 
 
 .card-body .list-group .list-group-item{
   background-color: var(--darker-gray) !important;
-  font-size:13px;
+  font-size:14px;
   color: var(--lightgray);
   border: none;
+}
+
+.card-body .list-group .list-group-item .card-img{
+  font-size: 16px;
+  margin-right: 10px;
 }
 
 .card-body .list-group .list-group-item .dim{
@@ -381,7 +390,7 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 #main-wrapper{
   overflow-y: auto;
   overflow-x: hidden;
-  height:calc(100vh - var(--main-footer-height) - (2 * var(--main-background-margins)))
+  height:calc(100vh - var(--main-footer-height) - (2 * var(--main-background-margins)) - var(--main-header-height))
 }
 
 
@@ -443,7 +452,7 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 /* Add styles for the main content */
 
 #main-content{
-  margin-top: 100px;
+  margin-top: var(--main-content-top-margin);
 }
 
 #main-col{
@@ -487,6 +496,13 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
   border-color: var(--lighter-blue) !important;
   margin-top: 5px;
   color: var(--darker-gray)
+}
+
+
+.ui-widget{
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--darker-gray);
 }
 
 .sub-label{
@@ -548,6 +564,10 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
   width:175px;
 }
 
+
+
+
+
 /* Add styles for badge top */
 
 #badge-top{
@@ -583,8 +603,8 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 
 #celebration-badge{
   background-color: var(--dark-gray);
-  box-shadow: -1px 1px 3x 1px var(--lighter-lightgray) !important;
-  border: 1.5px solid var(--lighter-blue);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--lighter-blue);
   color: var(--lightgray);
   width: 200px;
   height: 50px;
@@ -592,7 +612,7 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 }
 
 #celebration-badge:hover{
-  box-shadow: -2px 2px 3px 2px var(--lighter-lightgray) !important;
+  box-shadow: var(--card-hover-shadow);
   background-color: var(--blue-dark-gray);
 }
 
@@ -678,8 +698,8 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 /* Add styles for see houses button */
 #see-houses-btn{
   background-color: var(--dark-gray);
-  box-shadow: -1px 1px 3x 1px var(--lighter-lightgray) !important;
-  border: 1.5px solid var(--lighter-blue);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--lighter-blue);
   width: 150px;
   height: 150px;
   padding: 10px;
@@ -688,7 +708,7 @@ WHEN SCROLL DOWN ON MAIN CONTENT */
 }
 
 #see-houses-btn:hover{
-  box-shadow: -2px 2px 3px 2px var(--lighter-lightgray) !important;
+  box-shadow: var(--card-hover-shadow);
   background-color: var(--blue-dark-gray);
 }
 

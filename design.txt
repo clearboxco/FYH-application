@@ -1,5 +1,0 @@
-Sort Options At Top --> Price, $/SQFT, etc.
-
-Max 15 Tiles; 3 per row, 5 rows ; or vice versa
-
-Appear from left to right

@@ -159,19 +159,30 @@ const json = (response) => {
 
 // Utilities
 
-const encryptString = (plainText) => {
-    var b64 = CryptoJS.AES.encrypt(plainText, config.salt).toString();
-    var e64 = CryptoJS.enc.Base64.parse(b64);
-    var eHex = e64.toString(CryptoJS.enc.Hex);
-    return eHex;
+const encryptString = async (plainText) => {
+    const response = await fetch(config.crypto+`/encrypt?plainText=${plainText}`, {
+        method: 'GET'
+    })
+    .then(status)
+    .then(response => response.text())
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
+    return response;
 }
 
-const decryptString = (cipherText) => {
-    var reb64 = CryptoJS.enc.Hex.parse(cipherText);
-    var bytes = reb64.toString(CryptoJS.enc.Base64);
-    var decrypt = CryptoJS.AES.decrypt(bytes, config.salt);
-    var plain = decrypt.toString(CryptoJS.enc.Utf8);
-    return plain;
+const decryptString = async (cipherText) => {
+    const response = await fetch(config.crypto+`/decrypt?cipherText=${cipherText}`, {
+        method: 'GET'
+    })
+    .then(status)
+    .then(response => response.text())
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
+    return response;
 }
 
 const stripCommas = (string) => {
@@ -281,13 +292,12 @@ const loginUserErrorHandler = (response) => {
 
 const loginUser = async (post) =>{
     const [user,pass] = document.querySelectorAll('.form-control');
-    const response = await fetch(config.model+"auth/login",{
+    const response = await fetch(config.model+"/auth/login",{
         method: "POST",
         mode: "cors",
         credentials: "include",
         headers:{
-            "Content-Type":"application/json",
-            "Token":config.token,
+            "Content-Type":"application/json"
         },
         body: JSON.stringify({
             username:user.value,
@@ -383,6 +393,7 @@ if(hasPageClass("login")){
     $('input').on('blur',displayEmailValidation);
     $('input').on('keyup',disableAuthSubmission);
     $('input').on('click',resetErrorMsg);
+    $('input').on('click',disableAuthSubmission);
     $('#togglePassword').on('click',showPasswordEventHandler);
     $('#submit-btn').on('click',displayEmailValidation);
     $('#submit-btn').one('click',loginUser);
@@ -411,13 +422,12 @@ const registerUserErrorHandler = (response) => {
 
 const registerUser = async (post) =>{
     const [user,pass] = document.querySelectorAll('.form-control');
-    const response = await fetch(config.model+"auth/register",{
+    const response = await fetch(config.model+"/auth/register",{
         method: "POST",
         mode: "cors",
         credentials: "include",
         headers:{
-            "Content-Type":"application/json",
-            "Token":config.token,
+            "Content-Type":"application/json"
         },
         body: JSON.stringify({
             username:user.value,
@@ -445,6 +455,7 @@ if(hasPageClass("register")){
     $('input').on('blur',displayEmailValidation);
     $('input').on('keyup',disableAuthSubmission);
     $('input').on('click',resetErrorMsg);
+    $('input').on('click',disableAuthSubmission);
     $('#togglePassword').on('click',showPasswordEventHandler);
     $('#submit-btn').on('click',displayEmailValidation);
     $('#submit-btn').one('click',registerUser);
@@ -462,7 +473,7 @@ const updateUserRedirectHandler = (response) =>{
         window.location="."
     }
     else{
-        window.location="login"
+        window.location="login.html"
     }
 }
 
@@ -478,13 +489,12 @@ const updateUserErrorHandler = (response) => {
 
 const updateUser = async (post) =>{
     const [user,pass] = document.querySelectorAll('.form-control');
-    const response = await fetch(config.model+"auth/update",{
+    const response = await fetch(config.model+"/auth/update",{
         method: "POST",
         mode: "cors",
         credentials: "include",
         headers:{
-            "Content-Type":"application/json",
-            "Token":config.token,
+            "Content-Type":"application/json"
         },
         body: JSON.stringify({
             username:user.value,
@@ -541,6 +551,7 @@ if(hasPageClass("update")){
     $(window).on('load',disableUpdateSubmission);
     $('input').on('keyup',disableUpdateSubmission);
     $('input').on('blur',displayUpdateEmailValidation);
+    $('input').on('click',disableUpdateSubmission);
     $('#togglePassword').on('click',showPasswordEventHandler);
     $('#submit-btn').one('click',updateUser);
     $('#submit-btn').on('click',displayUpdateEmailValidation);
@@ -587,14 +598,12 @@ const searchPanelButtonClickEventHandler = (event) =>{
 
 //Logout
 const logout = async (event) =>{
-    const response = await fetch(config.model+"auth/logout",{
+    const response = await fetch(config.model+"/auth/logout",{
         method:"GET",
         mode:"cors",
         credentials: "include",
         headers: {
-            "Content-Type":"application/json",
-            "Token":config.token
-        }
+            "Content-Type":"application/json"        }
     })
     .then(status)
     .then(json)
@@ -633,14 +642,12 @@ const displayLoginStatus = (input) =>{
 
 
 const getLoginStatus = async () =>{
-    const response = await fetch(config.model+"auth/status",{
+    const response = await fetch(config.model+"/auth/status",{
         method:"GET",
         mode:"cors",
         credentials: "include",
         headers: {
-            "Content-Type":"application/json",
-            "Token":config.token
-        }
+            "Content-Type":"application/json"        }
     })
     .then(status)
     .then(json)
@@ -655,14 +662,12 @@ const getLoginStatus = async () =>{
 
 
 const getSearches = async () =>{
-    const response = await fetch(config.model+"data/searches",{
+    const response = await fetch(config.model+"/data/searches",{
         method: "GET",
         mode: "cors",
         credentials: "include",
         headers: {
-            "Content-Type":"application/json",
-            "Token":config.token
-        }
+            "Content-Type":"application/json"        }
     })
     .then(status)
     .then(json)
@@ -677,17 +682,25 @@ const getSearches = async () =>{
 }
 
 
-const displaySearches = (input) =>{
+const displaySearches = async (input) =>{
     const parent = document.querySelector("#search-items");
 
     if(input.error===null){
 
         const template=document.querySelector("#search-card-template");
 
-        input.data.forEach((search) => {
+        
+        const encryptionPromises = input.data.map(async (search) => {
+            return await encryptString(search.s_id);
+        });
+
+        const encryptedStrings = await Promise.all(encryptionPromises);
+
+        input.data.forEach((search, index) => {
+
             let clone = template.content.cloneNode(true);
 
-            clone.querySelector('.search-card').setAttribute("data-id",encryptString(search.s_id));
+            clone.querySelector('.search-card').setAttribute("data-id",encryptedStrings[index]);
 
             let keywords = clone.querySelectorAll('.keyword');
             
@@ -726,13 +739,13 @@ const displaySearches = (input) =>{
         document.querySelectorAll('.price-list-item').forEach(
             function(elem){
                 elem.addEventListener('click',function(e){
-                    searchContentMinMaxInputHandler(e,document.querySelectorAll(".price"));
+                    searchContentBasicInputHandler(e,document.querySelectorAll(".price"));
                 })
             })
         document.querySelectorAll('.year-built-list-item').forEach(
             function(elem){
                 elem.addEventListener('click',function(e){
-                    searchContentMinMaxInputHandler(e,document.querySelectorAll(".year"));
+                    searchContentBasicInputHandler(e,document.querySelectorAll(".year"));
                 })
             })
 
@@ -746,7 +759,8 @@ const displaySearches = (input) =>{
         document.querySelectorAll('.loc-list-item').forEach(
             function(elem){
                 elem.addEventListener('click',function(e){
-                    searchContentSelectionHandler(e,document.querySelector("#location"))
+                    searchContentBasicInputHandler(e,
+                        document.querySelectorAll("#location"))
                 })
             })
 
@@ -797,20 +811,21 @@ const clearSearches = (event) => {
 // Search Card Event Definitions
 
 const clickNoLoginCardRedirectHandler = (event) =>{
-    window.location="login";
+    window.location="login.html";
 }
 
 
 const postSearch = async (event) => {
-    const id = Number(decryptString(String($(event.currentTarget).closest(".login-card").attr("data-id"))));
+    let decryptedString = await decryptString(String($(event.currentTarget).closest(".login-card").attr("data-id")))
+
+    const id = Number(decryptedString);
+
     const response = await fetch(config.model+"/data/searches",{
         method: "POST",
         mode: "cors",
         credentials: "include", 
         headers: {
-            "Content-Type":"application/json",
-            "Token":config.token
-        },
+            "Content-Type":"application/json"        },
         body:
             JSON.stringify({
                 "s_id":id
@@ -835,10 +850,10 @@ const postSearch = async (event) => {
     })
 }
 
-const storeData = (response) =>{
+const storeData = async (response) =>{
     if(response!==null){
         let len = appendToStoredArray(window.arrayName,response.data);
-        let encryptedIdx = encryptString(String((len-1)));
+        let encryptedIdx = await encryptString(String((len-1)));
         return encryptedIdx;
     }
     return "error";
@@ -867,29 +882,22 @@ const searchContentUnhideForm = (event) =>{
     fadeInTargets(null,elems);
 }
 
-const searchContentMinMaxInputHandler = (event, targets) =>{
-    let keywords = event.currentTarget.querySelectorAll('.keyword');
-    
-    for(let i in keywords){
-        $(targets[i]).val(keywords[i].innerHTML).trigger('input');
-    }
-    
-    
-}
 
 const searchContentSelectionHandler = (event, target) =>{
     let keyword = event.currentTarget.querySelector('.keyword');
 
-    $(target).selectpicker('val',keyword.innerHTML).trigger('changed.bs.select');
+    let keyString = new String(keyword.innerHTML).trim();
+
+    $(target).selectpicker('val',keyString);
     
 }
 
-const searchContentBasicInputHandler = (event, targets) =>{
+const searchContentBasicInputHandler = (event, targets) =>{ // Outputs To Targets In Same Order As Parsed From Event.Target
     let keywords = event.currentTarget.querySelectorAll('.keyword');
 
-    for(let i in keywords){
-        $(targets[i]).val(keywords[i].innerHTML).trigger('input');
-    }
+    keywords.forEach((keyword, i)=>{
+        $(targets[i]).val(keyword.innerHTML).trigger('input');
+    })
 
 }
 
@@ -1127,15 +1135,15 @@ const submitForm = async (event) =>{
     }
 
     let data = parseFormContent();
+
     data.submission_type=submissionType;
 
-    const response = await fetch(config.model+"model/post",{
+    const response = await fetch(config.model+"/model/post",{
         method:"POST",
         mode: "cors",
         credentials: "include",
         headers:{
-            "Content-Type":"application/json",
-            "Token":config.token,
+            "Content-Type":"application/json"
         },
         body: JSON.stringify(data)
     })
@@ -1197,17 +1205,21 @@ const showFinalSubmitButton = (id) =>{
 
 // Form Construction
 const loadLocationOptions = async () => {
-    const select = $('#location');
-    const response = await fetch("../static/locations.json")
+    const $inputBox = $('#location');
+    const locations = await fetch("static/locations.json")
     .then(json)
-    .then(function(data){
-        
-        data.forEach(loc => {
-            select.append(new Option(loc,loc,false,false));
-        })
-        select.selectpicker('refresh');
-    
-    })
+
+    $inputBox.autocomplete({
+        source: function(request, response) {
+
+            var matcher = new RegExp( "^" + $.ui.autocomplete.escapeRegex( request.term ), "i" );
+            response( $.grep(locations, function( item ){
+                return matcher.test( item );
+            }).slice(0, 10));
+
+        }
+    });
+
 }
 
 const loadPropertyTypeOptions = () =>{
@@ -1243,13 +1255,12 @@ const displayLikeCount = (likeCount) =>{
 
 const getLikeCount = async () => {
 
-    const response = await fetch(config.model+"data/claps",{
+    const response = await fetch(config.model+"/data/claps",{
         method:"GET",
         mode: "cors",
         credentials: "include",
         headers:{
-            "Content-Type":"application/json",
-            "Token":config.token,
+            "Content-Type":"application/json"
         },
     })
     .then(status)
@@ -1288,13 +1299,12 @@ const likeButtonAnimationClickEventHandler = (event) =>{
 
 
 const postLike = async () =>{
-    const response = await fetch(config.model+"data/claps",{
+    const response = await fetch(config.model+"/data/claps",{
         method:"POST",
         mode: "cors",
         credentials: "include",
         headers:{
-            "Content-Type":"application/json",
-            "Token":config.token,
+            "Content-Type":"application/json"
         },
         body:JSON.stringify({
             claps:1
@@ -1346,10 +1356,7 @@ if(hasPageClass("index")){
         fadeInTargets(e,document.querySelectorAll('#year-built-group,#location-group'));
     })
 
-    $('#location').selectpicker().on("shown.bs.select",function(e){
-        $(e.currentTarget).selectpicker('val',"");
-    })
-    $('#location').selectpicker().on("changed.bs.select",function(e){
+    $('#location').on("input",function(e){
         fadeInTargets(e,document.querySelectorAll('#beds-group,#baths-group,#sqft-group'));
     })
 
@@ -1440,7 +1447,7 @@ const sortData = (data) =>{
 
 
 
-const parseUrlParams = () => {
+const parseUrlParams = async () => {
 
     clearData();
 
@@ -1448,7 +1455,16 @@ const parseUrlParams = () => {
 
     let urlParams = new URLSearchParams(url.search)
 
-    let arrayIdx= new Number(decryptString(String(urlParams.get("id"))));
+    let idParam = String(urlParams.get("id"));
+
+    if(idParam==="error"){
+        displayError();
+        return;
+    }
+
+    let decryptedString = await decryptString(idParam);
+
+    let arrayIdx= new Number(decryptedString);
 
     const data = (getStorage(window.arrayName) ?? [])[arrayIdx];
 
@@ -1509,9 +1525,9 @@ const displayData = (data,cardsPerRow) =>{
 
             entryItems[5].innerHTML=house.bedrooms;
             entryItems[6].innerHTML=house.bathrooms;
-            entryItems[7].innerHTML=house.sqft;
+            entryItems[7].innerHTML=new Number(house.sqft).toLocaleString('en-US'); //Bitwise Operation to convert to signed 32-bit int
 
-            entryItems[8].innerHTML=house.year_built;
+            entryItems[8].innerHTML= new Number(house.year_built) | 0; //Bitwise Operation to convert to signed 32-bit int
             entryItems[9].innerHTML= new Number(house.price_per_sqft).toLocaleString('en-US');
             entryItems[10].innerHTML= new Number(house['HOA/month']).toLocaleString('en-US');
 
@@ -1535,14 +1551,7 @@ const displayData = (data,cardsPerRow) =>{
 
             entryItems[14].innerHTML=new Number(house.days_on_market).toLocaleString('en-US');
 
-            /* TODO: Update all entryItems and ensure sorting puts cards in correct order */
-
-
-            cardClone
-
             col.appendChild(cardClone)
-
-
 
             dataIdx++;
         }
@@ -1553,6 +1562,17 @@ const displayData = (data,cardsPerRow) =>{
     
     $('.offer-link').one('click',hrefNewTabRedirectHandler); 
     $('.expand-card').one('click',expandContentBtnEventHandler);
+}
+
+
+const displayError = () =>{
+    const mainContent = document.querySelector("#main-content");
+
+    const errorTemplate=document.querySelector("#error-template");
+
+    let errorClone = errorTemplate.content.cloneNode(true);
+
+    mainContent.appendChild(errorClone);
 }
 
 const clearData = () =>{

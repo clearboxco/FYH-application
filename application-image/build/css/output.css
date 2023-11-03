@@ -11,8 +11,14 @@
     --lightgray: #939598;
     --lighter-lightgray: #E9E9E9;
 
-    --main-background-margin-top: 150px;
+    --header-height: 100px;
+
+    --main-background-margin-top: 5vh;
     --page-margins: 20px;
+    --page-bot-margin: 2.5px;
+
+    --main-content-header-height: 55px;
+    --main-content-header-margin-height: 10px;
 
     --main-content-width: 750px;
 
@@ -23,7 +29,7 @@
 
 
     --card-width: 206.33px; /*237.67px;*/
-    --card-height: 207.5px;
+    --card-height: 205px;
     --card-margin: 5px;
   }
 
@@ -70,7 +76,7 @@
 
 
 #page{
-    margin: var(--page-margins);
+    margin: var(--page-margins) var(--page-margins) var(--page-bot-margin);
     background-color:none;
     width: calc(100vw - 2*var(--page-margins));
 }
@@ -101,9 +107,20 @@
   pointer-events: none;
 }
 
+.link{
+  color:var(--blue);
+  white-space: nowrap;
+}
+
+.link:hover{
+  color:var(--dark-blue);
+}
+
+
 
 #header{
     background: none;
+    height: var(--header-height);
 }
 
 #homepage-link{
@@ -135,9 +152,10 @@
 #main-content-header{
   background-color:none;
   font-family: var(--font);
-  margin: 10px 0px;
+  margin: var(--main-content-header-margin-height) 0px;
   margin-left: calc(var(--cards-col-padding) + var(--cards-row-side-margin) + var(--card-margin));
   user-select: none;
+  height: var(--main-content-header-height);
 }
 
 #cards-per-row-toggle{
@@ -163,7 +181,6 @@
 
 .sort-btn-img{
   font-size: 16px;
-  margin-top: 2.5px;
 }
 
 .sort-btn:hover{
@@ -192,7 +209,12 @@
 
 #main-content{
     background-color: none;
-    height: 825px;
+    height: calc(100vh - var(--main-background-margin-top) 
+                  - var(--header-height) 
+                  - var(--main-content-header-height) 
+                  - var(--main-content-header-margin-height) 
+                  - var(--page-margins) 
+                  - var(--page-bot-margin));
     width: var(--main-content-width);
     padding-top: 10px;
     padding-bottom: 10px;
@@ -231,7 +253,7 @@
 .house-card{
     font-family: var(--font);
     background-color: var(--darker-gray) !important;
-    box-shadow: -1px 1px 2px 1px var(--lightgray);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     animation: fadeIn 1s ease-in-out;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -257,7 +279,7 @@
 }
 
 .house-card:hover{
-  box-shadow: -1px 1px 3px 1px var(--lightgray) !important;
+  box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 24px 0 rgba(0, 0, 0, 0.19);
 }
 
 .card-img{
@@ -392,9 +414,34 @@
 
   animation: fadeIn .25s ease-in-out;
 
-
+  overflow: hidden;
 }
 
 .expanded-card-sub-col{
   margin: 12.5px 10px;
+}
+
+
+
+
+/*Error Styles*/
+#error-row{
+  font-family: var(--font);
+  color: var(--gray);
+}
+
+#error-col{
+  margin: 5px 0px;
+}
+
+.error-content{
+  margin: 10px 0px;
+}
+
+.error-title{
+  font-size: 20px;
+}
+
+.error-text{
+  font-size: 16px;
 }

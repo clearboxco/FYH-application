@@ -7,6 +7,8 @@
     --gray: #808285;
     --lightgray: #939598;
     --lighter-lightgray: #E9E9E9;
+
+    --main-content-margin-top: 15vh;
   }
 
 #page{
@@ -41,7 +43,7 @@
 
 #main-content{
     background:white;
-    margin-top:250px;
+    margin-top:var(--main-content-margin-top);
 }
 
 #form-title-background{
