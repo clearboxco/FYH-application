@@ -712,15 +712,15 @@ const displaySearches = async (input) =>{
             keywords[5].innerHTML=((search) => {
                 let string = "";
             
-                if(search.city!==""){
+                if(search.city!=="" && search.city !== null){
                     string+=search.city
                     string+=", "
                 }
-                if(search.state!==""){
+                if(search.state!=="" && search.state !== null){
                     string+=window.stateMapping_in[search.state]
                     string+=" "
                 }
-                if(search.zip!==""){
+                if(search.zip!=="" && search.zip !== null){
                     string+=search.zip
                 }
                 return string;
@@ -996,11 +996,17 @@ const checkForm = () => {
 
     let $propType = $('#prop-type');
 
+    let $loc = $('#location')
+
     let $bds = $('#bd');
     let $bas = $('#ba');
     let $sqft = $('#sqft');
 
     if($priceMin.val() ==="" || $priceMax.val()==="" || $ybMin.val()==="" || $ybMax.val()===""){
+        return false;
+    }
+
+    if($loc.val() ===""){
         return false;
     }
 
@@ -1077,18 +1083,18 @@ const checkFormSbmt = (e) =>{
 
 const parseLocation = (location) => {
     const loc = {
-        city:"",
-        state:"",
-        zip:""
+        city:null,
+        state:null,
+        zip:null
     };
 
     if(location.includes(",")){
         let [city,state] = location.split(",");
         loc.city=city.trim();
-        loc.state=window.stateMapping_out[state.trim()];
+        loc.state=window.stateMapping_out[state.trim()] ?? null;
     }
     else if(isNaN(Number(location))){
-        loc.state=window.stateMapping_out[location.trim()];
+        loc.state=window.stateMapping_out[location.trim()] ?? null;
     }
     else if(Number(location)>0){
         loc.zip=location.trim();
@@ -1242,12 +1248,14 @@ const loadPropertyTypeOptions = () =>{
 
 
 const displayLikeCount = (likeCount) =>{
+    let adjustedLikeCount = ((likeCount) => {return likeCount < config.maxClaps ? likeCount : config.maxClaps})(likeCount);
+
     const $countObj = $('#like-count');
 
     if(!$countObj.hasClass('hidden')){
         $countObj.addClass('hidden');
     }
-    let stringCount=likeCount.toLocaleString('en-US');
+    let stringCount=adjustedLikeCount.toLocaleString('en-US');
     $countObj.html(stringCount);
     $countObj.removeClass('hidden');
 }
@@ -1307,7 +1315,7 @@ const postLike = async () =>{
             "Content-Type":"application/json"
         },
         body:JSON.stringify({
-            claps:1
+            claps:true
         })
     })
     .then(status)
